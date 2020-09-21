@@ -136,14 +136,30 @@ NSData *
 getPasteboardImageData (NSBitmapImageFileType bitmapImageFileType)
 {
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
-    NSImage *image = [[NSImage alloc] initWithPasteboard:pasteBoard];
-    NSData *imageData = nil;
 
+    NSArray *classes = [NSArray arrayWithObject:[NSURL class]];
+    
+    NSDictionary *options = [NSDictionary dictionaryWithObject:
+        [NSImage imageTypes] forKey:NSPasteboardURLReadingContentsConformToTypesKey];
+
+    NSArray *fileURLs =
+    [pasteBoard readObjectsForClasses:classes options:options];
+    
+    NSImage *image = nil;
+    if (fileURLs.count > 0) {
+        image = [[NSImage alloc] initWithContentsOfURL:fileURLs[0]];
+    } else {
+        image = [[NSImage alloc] initWithPasteboard:pasteBoard];
+    }
+    
+    NSData *imageData = nil;
     if (image != nil) {
         imageData = renderImageData(image, bitmapImageFileType);
     }
 
+    [fileURLs release];
     [image release];
+
     return imageData;
 }
 
